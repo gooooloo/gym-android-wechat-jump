@@ -1,0 +1,1 @@
+from gym_android_wechat_jump.env.wechat_jump_env import WechatJumpEnv
