@@ -18,6 +18,9 @@ class XiaomiMix2S:
     SLEEP_SECONDS_AFTER_JUMP = 1
     SLEEP_SECONDS_AFTER_RESET = 1
 
+    STATE_AREA_TOP = 830
+    STATE_AREA_BOTTOM = 1511
+
 
 cfg = XiaomiMix2S
 

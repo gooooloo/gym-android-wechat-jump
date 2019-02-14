@@ -49,7 +49,10 @@ class WechatJumpEnv(gym.Env):
         self.reward = 0
         self.last_score = 0
 
-        self.action_space = spaces.Box(low=100, high=1000, shape=(1,), dtype=np.int32)
+        self.STATE_SIZE = 84
+
+        self.action_space = spaces.Box(low=100, high=1200, shape=(1,), dtype=np.int32)
+        self.observation_space = spaces.Box(low=0, high=255, shape=(self.STATE_SIZE, self.STATE_SIZE,), dtype=np.uint8)
 
     def step(self, action):
 
@@ -62,8 +65,9 @@ class WechatJumpEnv(gym.Env):
 
         Device.capture(cfg.PNG_ON_PC)
         self.state = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
-
         self._handle_score(self.state)
+        self.state = cv2.resize(self.state[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :],
+                                (self.STATE_SIZE, self.STATE_SIZE))
         info = {}  # TODO
 
         return self.state, self.reward, self.done, info
@@ -80,6 +84,8 @@ class WechatJumpEnv(gym.Env):
         Device.capture(cfg.PNG_ON_PC)
         self.state = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
         self._handle_score(self.state)
+        self.state = cv2.resize(self.state[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :],
+                                (self.STATE_SIZE, self.STATE_SIZE))
 
         return self.state
 
