@@ -12,7 +12,7 @@ class Device:
 
     @staticmethod
     def capture(path):
-        cmd = f'adb shell screencap -p {cfg.PNG_ON_PHONE} && adb pull {cfg.PNG_ON_PHONE} {path}'
+        cmd = f'adb shell screencap -p {cfg.PNG_ON_PHONE} && adb pull {cfg.PNG_ON_PHONE} {path} > /dev/null'
         # print('--->', cmd)
         os.system(cmd)
 
