@@ -39,9 +39,17 @@ class WechatJumpEnv(gym.Env):
         self.reward = now_score - self.last_score
         self.last_score = now_score
 
+        # With reward == 0 condition, we limit the game to increase score every single step.
+        if self.reward <= 0:
+            self.done = True
+            self.reward = 0
+            return
+
         # TODO: fix cases that score > 99
         if self.last_score >= 99:
             self.done = True
+            self.reward = 0
+            return
 
     def __init__(self):
         self.state = None
@@ -61,7 +69,9 @@ class WechatJumpEnv(gym.Env):
             action = 1500
 
         Device.jump(action)
-        time.sleep(cfg.SLEEP_SECONDS_AFTER_JUMP)
+
+        # TODO: change this sleeping way, we can be smarter and robuster.
+        time.sleep(2 * float(action) / 1000)
 
         Device.capture(cfg.PNG_ON_PC)
         self.state = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
@@ -83,7 +93,6 @@ class WechatJumpEnv(gym.Env):
 
         Device.capture(cfg.PNG_ON_PC)
         self.state = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
-        self._handle_score(self.state)
         self.state = cv2.resize(self.state[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :],
                                 (self.STATE_SIZE, self.STATE_SIZE))
 
