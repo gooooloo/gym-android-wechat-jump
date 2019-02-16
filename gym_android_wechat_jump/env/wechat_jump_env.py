@@ -70,14 +70,22 @@ class WechatJumpEnv(gym.Env):
 
         Device.jump(action)
 
-        # TODO: change this sleeping way, we can be smarter and robuster.
-        time.sleep(2 * float(action) / 1000)
-
         Device.capture(cfg.PNG_ON_PC)
-        self.state = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
-        self._handle_score(self.state)
-        self.state = cv2.resize(self.state[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :],
-                                (self.STATE_SIZE, self.STATE_SIZE))
+        s1 = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
+        crop1 = s1[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :]
+        resize1 = cv2.resize(crop1, (self.STATE_SIZE, self.STATE_SIZE))
+        while True:
+            Device.capture(cfg.PNG_ON_PC)  # it's time consuming
+            s2 = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
+            crop2 = s2[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :]
+            resize2 = cv2.resize(crop2, (self.STATE_SIZE, self.STATE_SIZE))
+            if np.array_equal(resize1, resize2):
+                break
+            s1 = s2
+            resize1 = resize2
+
+        self._handle_score(s1)
+        self.state = resize1
         info = {}  # TODO
 
         return self.state, self.reward, self.done, info
