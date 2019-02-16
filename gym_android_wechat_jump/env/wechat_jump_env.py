@@ -70,11 +70,17 @@ class WechatJumpEnv(gym.Env):
 
         Device.jump(action)
 
+        t0 = time.time()
+
         Device.capture(cfg.PNG_ON_PC)
         s1 = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
         crop1 = s1[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :]
         resize1 = cv2.resize(crop1, (self.STATE_SIZE, self.STATE_SIZE))
         while True:
+
+            if time.time() - t0 > cfg.MAX_WAIT_SECONDS_AFTER_JUMP:
+                break
+
             Device.capture(cfg.PNG_ON_PC)  # it's time consuming
             s2 = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
             crop2 = s2[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :]
