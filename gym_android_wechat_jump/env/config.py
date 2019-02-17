@@ -23,6 +23,10 @@ class XiaomiMix2S:
     STATE_AREA_TOP = 830
     STATE_AREA_BOTTOM = 1511
 
+    # For those pixels with color between [LOW, HIGH], we think them as background
+    BG_COLOR_BGR_LOW = (195, 190, 227)
+    BG_COLOR_BGR_HIGH = (227, 235, 252)
+
 
 cfg = XiaomiMix2S
 

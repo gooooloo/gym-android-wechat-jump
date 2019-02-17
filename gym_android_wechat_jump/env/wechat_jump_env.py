@@ -51,6 +51,26 @@ class WechatJumpEnv(gym.Env):
             self.reward = 0
             return
 
+    @staticmethod
+    def is_background(bgr):
+        bgr_low, bgr_high = cfg.BG_COLOR_BGR_LOW, cfg.BG_COLOR_BGR_HIGH
+        for c in range(3):
+            if bgr[c] < bgr_low[c] or bgr[c] > bgr_high[c]:
+                return False
+        return True
+
+    def _read_screen(self):
+        Device.capture(cfg.PNG_ON_PC)
+        bgr = cv2.imread(cfg.PNG_ON_PC)
+        gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+        crop = bgr[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :, :]
+        resize = cv2.resize(crop, (self.STATE_SIZE, self.STATE_SIZE))
+        binary = np.asarray([0 if self.is_background(resize[r,c,:]) else 255
+                             for r in range(resize.shape[0]) for c in range(resize.shape[1])
+                             ], np.uint8)
+        binary.shape = resize.shape[:2]
+        return binary, gray
+
     def __init__(self):
         self.state = None
         self.done = False
@@ -72,26 +92,20 @@ class WechatJumpEnv(gym.Env):
 
         t0 = time.time()
 
-        Device.capture(cfg.PNG_ON_PC)
-        s1 = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
-        crop1 = s1[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :]
-        resize1 = cv2.resize(crop1, (self.STATE_SIZE, self.STATE_SIZE))
+        state1, s1 = self._read_screen()
         while True:
 
             if time.time() - t0 > cfg.MAX_WAIT_SECONDS_AFTER_JUMP:
                 break
 
-            Device.capture(cfg.PNG_ON_PC)  # it's time consuming
-            s2 = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
-            crop2 = s2[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :]
-            resize2 = cv2.resize(crop2, (self.STATE_SIZE, self.STATE_SIZE))
-            if np.array_equal(resize1, resize2):
+            state2, s2 = self._read_screen()
+            if np.array_equal(state1, state2):
                 break
             s1 = s2
-            resize1 = resize2
+            state1 = state2
 
         self._handle_score(s1)
-        self.state = resize1
+        self.state = state1
         info = {}  # TODO
 
         return self.state, self.reward, self.done, info
