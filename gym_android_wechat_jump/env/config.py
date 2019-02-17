@@ -27,6 +27,8 @@ class XiaomiMix2S:
     BG_COLOR_BGR_LOW = (195, 190, 227)
     BG_COLOR_BGR_HIGH = (227, 235, 252)
 
+    FOOT_COLOR = (102, 59, 55)
+
 
 cfg = XiaomiMix2S
 

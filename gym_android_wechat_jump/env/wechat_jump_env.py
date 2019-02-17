@@ -8,6 +8,7 @@ from gym_android_wechat_jump.env.ocr import ocr
 import cv2
 from gym_android_wechat_jump.env.config import cfg as cfg
 
+cnt = 0
 
 class WechatJumpEnv(gym.Env):
 
@@ -59,13 +60,17 @@ class WechatJumpEnv(gym.Env):
                 return False
         return True
 
+    @staticmethod
+    def is_foot(bgr):
+        return (bgr == cfg.FOOT_COLOR).all()
+
     def _read_screen(self):
         Device.capture(cfg.PNG_ON_PC)
         bgr = cv2.imread(cfg.PNG_ON_PC)
         gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
         crop = bgr[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :, :]
         resize = cv2.resize(crop, (self.STATE_SIZE, self.STATE_SIZE))
-        binary = np.asarray([0 if self.is_background(resize[r,c,:]) else 255
+        binary = np.asarray([0 if self.is_background(resize[r,c,:]) else 128 if self.is_foot(resize[r,c,:]) else 255
                              for r in range(resize.shape[0]) for c in range(resize.shape[1])
                              ], np.uint8)
         binary.shape = resize.shape[:2]
@@ -108,6 +113,9 @@ class WechatJumpEnv(gym.Env):
         self.state = state1
         info = {}  # TODO
 
+        # global cnt
+        # cv2.imwrite(cfg.PNG_ON_PC + f".bin.{cnt}.png", cv2.cvtColor(self.state, cv2.COLOR_GRAY2BGR))
+        # cnt += 1
         return self.state, self.reward, self.done, info
 
     def reset(self):
@@ -120,9 +128,12 @@ class WechatJumpEnv(gym.Env):
             self.last_score = 0
 
         Device.capture(cfg.PNG_ON_PC)
-        self.state = cv2.imread(cfg.PNG_ON_PC, cv2.IMREAD_GRAYSCALE)
-        self.state = cv2.resize(self.state[cfg.STATE_AREA_TOP:cfg.STATE_AREA_BOTTOM, :],
-                                (self.STATE_SIZE, self.STATE_SIZE))
+
+        self.state, _ = self._read_screen()
+
+        # global cnt
+        # cv2.imwrite(cfg.PNG_ON_PC + f".bin.{cnt}.png", cv2.cvtColor(self.state, cv2.COLOR_GRAY2BGR))
+        # cnt += 1
 
         return self.state
 
